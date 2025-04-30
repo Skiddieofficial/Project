@@ -1,0 +1,9 @@
+# requirements.txt
+fastapi
+uvicorn
+httpx
+sqlalchemy
+pydantic
+python-dotenv
+websockets
+aiohttp

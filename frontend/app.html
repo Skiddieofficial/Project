@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RunPod AI Interface</title>
+    <style>
+        :root {
+            --primary: #4a6cf7;
+            --primary-hover: #3a50c0;
+            --secondary: #6c757d;
+            --dark: #212529;
+            --light: #f8f9fa;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f8ff;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 16px;
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button:disabled {
+            background-color: var(--secondary);
+            cursor: not-allowed;
+        }
+
+        .status-card {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .status-card h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .status-item {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .status-label {
+            font-weight: 600;
+            width: 120px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar .progress {
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-pending {
+            background-color: #ffe9a3;
+            color: #856404;
+        }
+
+        .badge-submitted {
+            background-color: #b8e0ff;
+            color: #004085;
+        }
+
+        .badge-completed {
+            background-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .badge-failed {
+            background-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .badge-timeout {
+            background-color: #fddfdf;
+            color: #a71d2a;
+        }
+
+        .result-container {
+            margin-top: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ced4da;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .job-history {
+            margin-top: 40px;
+        }
+
+        .job-history h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .job-list {
+            list-style: none;
+        }
+
+        .job-item {
+            background-color: white;
+            border-radius: 5px;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-left: 4px solid var(--primary);
+        }
+
+        .job-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .job-item.selected {
+            background-color: #e7f0ff;
+        }
+
+        .job-id {
+            font-size: 0.8em;
+            color: #777;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #333;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .toast.show {
+            display: block;
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>RunPod AI Interface</h1>
+            <p>Submit your job and get results in real-time</p>
+        </header>
+
+        <div class="card">
+            <form id="jobForm">
+                <div class="form-group">
+                    <label for="prompt">Enter your prompt:</label>
+                    <textarea id="prompt" name="prompt" required placeholder="Type your prompt here..."></textarea>
+                </div>
+                <button type="submit" id="submitBtn">Submit Job</button>
+                <span id="submitLoader" class="loader" style="display: none;"></span>
+            </form>
+        </div>
+
+        <div class="card status-card" id="statusCard">
+            <h3>Job Status</h3>
+            <div class="status-item">
+                <span class="status-label">Job ID:</span>
+                <span id="jobId">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Status:</span>
+                <span id="jobStatus" class="status-badge">-</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress" id="progressBar"></div>
+            </div>
+            
+            <div id="resultSection" style="display: none;">
+                <h4>Result:</h4>
+                <div class="result-container" id="resultContainer">
+                    Processing...
+                </div>
+            </div>
+        </div>
+
+        <div class="card job-history">
+            <h3>Recent Jobs</h3>
+            <ul class="job-list" id="jobList">
+                <!-- Job items will be added here dynamically -->
+            </ul>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        Operation completed
+    </div>
+
+    <script>
+        // the main script for the app you are to use to adopt in the manin html script
+        // Configuration
+        const API_BASE_URL = 'https://health-services-43i9.onrender.com';
+        
+        // DOM Elements
+        const jobForm = document.getElementById('jobForm');
+        const promptInput = document.getElementById('prompt');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitLoader = document.getElementById('submitLoader');
+        const statusCard = document.getElementById('statusCard');
+        const jobIdEl = document.getElementById('jobId');
+        const jobStatusEl = document.getElementById('jobStatus');
+        const progressBar = document.getElementById('progressBar');
+        const resultSection = document.getElementById('resultSection');
+        const resultContainer = document.getElementById('resultContainer');
+        const jobList = document.getElementById('jobList');
+        const toast = document.getElementById('toast');
+        
+        // State management
+        let currentJobId = null;
+        let websocket = null;
+        let jobHistory = [];
+        
+        // Load job history from localStorage
+        function loadJobHistory() {
+            const storedHistory = localStorage.getItem('jobHistory');
+            if (storedHistory) {
+                jobHistory = JSON.parse(storedHistory);
+                renderJobHistory();
+            }
+        }
+        
+        // Save job to history
+        function saveToHistory(jobId, prompt, status = 'PENDING') {
+            // Add job to beginning of array (most recent first)
+            jobHistory.unshift({
+                id: jobId,
+                prompt: prompt.substring(0, 50) + (prompt.length > 50 ? '...' : ''),
+                status: status,
+                timestamp: new Date().toISOString()
+            });
+            
+            // Keep only 10 most recent jobs
+            if (jobHistory.length > 10) {
+                jobHistory = jobHistory.slice(0, 10);
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('jobHistory', JSON.stringify(jobHistory));
+            
+            // Update UI
+            renderJobHistory();
+        }
+        
+        // Render job history in UI
+        function renderJobHistory() {
+            jobList.innerHTML = '';
+            
+            if (jobHistory.length === 0) {
+                jobList.innerHTML = '<li>No job history available</li>';
+                return;
+            }
+            
+            jobHistory.forEach(job => {
+                const item = document.createElement('li');
+                item.className = 'job-item' + (job.id === currentJobId ? ' selected' : '');
+                item.innerHTML = `
+                    <div>
+                        <strong>${job.prompt}</strong>
+                        <div class="job-id">ID: ${job.id}</div>
+                    </div>
+                    <span class="status-badge badge-${job.status.toLowerCase()}">${job.status}</span>
+                `;
+                
+                item.addEventListener('click', () => loadJob(job.id));
+                jobList.appendChild(item);
+            });
+        }
+        
+        // Update job status in history
+        function updateJobStatusInHistory(jobId, status) {
+            const index = jobHistory.findIndex(job => job.id === jobId);
+            if (index !== -1) {
+                jobHistory[index].status = status;
+                localStorage.setItem('jobHistory', JSON.stringify(jobHistory));
+                renderJobHistory();
+            }
+        }
+        
+        // Submit a new job
+        async function submitJob(prompt) {
+            submitBtn.disabled = true;
+            submitLoader.style.display = 'inline-block';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/submit-job`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ prompt })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                saveToHistory(data.job_id, prompt);
+                connectToJob(data.job_id);
+                
+                showToast('Job submitted successfully!');
+                return data.job_id;
+            } catch (error) {
+                console.error('Error submitting job:', error);
+                showToast('Failed to submit job: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitLoader.style.display = 'none';
+            }
+        }
+        
+        // Get job status via REST API
+        async function getJobStatus(jobId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/job/${jobId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error getting job status:', error);
+                showToast('Failed to get job status: ' + error.message);
+            }
+        }
+        
+        // Connect to WebSocket for real-time updates
+        function connectToJob(jobId) {
+            // Close any existing websocket connection
+            if (websocket && websocket.readyState !== WebSocket.CLOSED) {
+                websocket.close();
+            }
+            
+            currentJobId = jobId;
+            showJobStatus();
+            
+            // Create a new websocket connection
+            const wsUrl = `${API_BASE_URL.replace('https://', 'wss://').replace('http://', 'ws://')}/ws/${jobId}`;
+            websocket = new WebSocket(wsUrl);
+            
+            websocket.onopen = function(evt) {
+                console.log('WebSocket connection established');
+            };
+            
+            websocket.onmessage = function(evt) {
+                const data = JSON.parse(evt.data);
+                updateJobDisplay(data);
+            };
+            
+            websocket.onerror = function(evt) {
+                console.error('WebSocket error:', evt);
+                // Fall back to REST API polling if WebSocket fails
+                pollJobStatus(jobId);
+            };
+            
+            websocket.onclose = function(evt) {
+                console.log('WebSocket connection closed');
+            };
+        }
+        
+        // Poll job status as fallback if WebSocket fails
+        function pollJobStatus(jobId) {
+            const pollInterval = setInterval(async () => {
+                const data = await getJobStatus(jobId);
+                if (!data) return;
+                
+                updateJobDisplay(data);
+                
+                // Stop polling if job is complete
+                if (['COMPLETED', 'FAILED', 'TIMEOUT', 'POLLING_ERROR'].includes(data.status)) {
+                    clearInterval(pollInterval);
+                }
+            }, 2000);
+        }
+        
+        // Load job details by ID
+        async function loadJob(jobId) {
+            const data = await getJobStatus(jobId);
+            if (data) {
+                connectToJob(jobId);
+                updateJobDisplay(data);
+            }
+        }
+        
+        // Show job status UI
+        function showJobStatus() {
+            statusCard.style.display = 'block';
+            jobIdEl.textContent = currentJobId;
+            jobStatusEl.textContent = 'CONNECTING...';
+            jobStatusEl.className = 'status-badge badge-pending';
+            progressBar.style.width = '10%';
+            resultSection.style.display = 'none';
+            resultContainer.textContent = 'Processing...';
+            
+            // Update selected job in list
+            document.querySelectorAll('.job-item').forEach(item => {
+                item.classList.remove('selected');
+                if (item.querySelector('.job-id').textContent.includes(currentJobId)) {
+                    item.classList.add('selected');
+                }
+            });
+        }
+        
+        // Update job display with new data
+        function updateJobDisplay(data) {
+            jobStatusEl.textContent = data.status;
+            updateStatusBadge(data.status);
+            updateProgressBar(data.status);
+            updateJobStatusInHistory(data.job_id, data.status);
+            
+            // Display result if available
+            if (data.result) {
+                resultSection.style.display = 'block';
+                
+                if (typeof data.result === 'object') {
+                    resultContainer.textContent = JSON.stringify(data.result, null, 2);
+                } else {
+                    resultContainer.textContent = data.result;
+                }
+            }
+        }
+        
+        // Update status badge appearance
+        function updateStatusBadge(status) {
+            jobStatusEl.className = 'status-badge';
+            
+            switch (status) {
+                case 'PENDING':
+                case 'SUBMITTED':
+                    jobStatusEl.classList.add('badge-submitted');
+                    break;
+                case 'COMPLETED':
+                    jobStatusEl.classList.add('badge-completed');
+                    break;
+                case 'FAILED':
+                case 'TIMEOUT':
+                case 'POLLING_ERROR':
+                    jobStatusEl.classList.add('badge-failed');
+                    break;
+                default:
+                    jobStatusEl.classList.add('badge-pending');
+            }
+        }
+        
+        // Update progress bar based on status
+        function updateProgressBar(status) {
+            let progressWidth = '10%';
+            
+            switch (status) {
+                case 'PENDING':
+                    progressWidth = '10%';
+                    break;
+                case 'SUBMITTED':
+                    progressWidth = '30%';
+                    break;
+                case 'IN_PROGRESS':
+                    progressWidth = '60%';
+                    break;
+                case 'COMPLETED':
+                    progressWidth = '100%';
+                    break;
+                case 'FAILED':
+                case 'TIMEOUT':
+                case 'POLLING_ERROR':
+                    progressWidth = '100%';
+                    break;
+            }
+            
+            progressBar.style.width = progressWidth;
+        }
+        
+        // Show toast message
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Event Listeners
+        jobForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const prompt = promptInput.value.trim();
+            
+            if (prompt) {
+                await submitJob(prompt);
+            }
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadJobHistory();
+        });
+    </script>
+</body>
+</html>
